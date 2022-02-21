@@ -1,0 +1,89 @@
+###############################################################
+
+Ajuste de Séries Temporais no R - Prof. Tiago Silveira Gontijo
+Ciclo, Tendência e Sazonalidade
+
+###############################################################
+
+## Ajuste inicial
+
+## Limpar variáveis do sistema
+rm(list=ls(all=TRUE))
+ 
+## Limpar console 
+Crtl+l
+
+## Exibir diretório atual 
+getwd()
+
+## Especifique o diretório onde encontra-se seu arquivo 
+setwd("C:/Users/tsgon/Desktop/Unibh - Extensão/Aulas/Aula Prática 01")
+ 
+## Verificar alteração do diretório
+getwd()
+
+## Importar dados 
+val<-read.table("Data2.txt",header=TRUE,sep=,dec=",")
+
+## Verificar os dados
+fix(val)
+view(val)
+
+## Decomposição de Série Temporal
+val$cu <- ts(val$cu, frequency = 12)
+d <- decompose(val$cu)
+plot(d)
+
+###############################################################
+
+## Clear worspace
+rm(list=ls(all=TRUE))
+
+## O pacote R torna divertido e fácil aprender programação em R e ciência de dados
+install.packages("swirl")
+library("swirl")
+swirl()
+
+## Séries Temporais em diferentes frequências
+
+## Daily morning gold prices
+install.packages("ggfortify")
+install.packages("fpp2")
+library(ggfortify)
+library(fpp2)
+autoplot(gold)
+
+## Produção trimestral de fio de lã na Austrália: toneladas
+autoplot(woolyrnq)
+
+## Produção mensal de gás australiana
+autoplot(gas)
+
+## Demanda de eletricidade a cada meia hora
+autoplot(taylor)
+
+## Número de armadilhas para capturar Lince no Canadá
+library(ggfortify)
+data(lynx); trapped <- lynx
+autoplot(lynx)
+
+## O número de armadilhas para capturar Lince no Canadá apresenta tendência?
+trapped.time <- time(trapped)
+trapped.lm <- lm(trapped ~ trapped.time)
+summary(trapped.lm)
+
+## Ciclo de vida - parece ser de de aproximadamente 5 anos
+ma10 <- filter(x=trapped, filter=rep(x=1/10,times=10), sides=2)
+ma5 <- filter(x=trapped, filter=rep(x=1/5,times=5), sides=2)
+plot(trapped,col="grey", ylab = "Lynx Trapped", xlab = "Year")
+lines(ma10,col="red",lwd=2)
+lines(ma5,col="purple",lwd=2)
+legend("topright", c(" 5-Year Moving Average", "10-Year Moving Average"), bty
+= "n", col = c("purple","red"), pch = 15)
+abline(trapped.lm, col="black",lwd=2, lty="dashed")
+
+## Sazonalidade
+monthplot(gas)
+ggseasonplot(gas, polar = T)
+
+###############################################################

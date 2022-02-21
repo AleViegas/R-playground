@@ -1,0 +1,136 @@
+###############################################################
+
+Ajuste de Séries Temporais no R - Prof. Tiago Silveira Gontijo
+ggplot2 - um resumo sobre diagramas de correlação | dispersão
+
+###############################################################
+
+## Ajuste inicial
+ 
+## Limpar variáveis do sistema
+rm(list=ls(all=TRUE))
+ 
+## Limpar console 
+Crtl+l
+
+## Exibir diretório atual 
+getwd()
+
+## Especifique o diretório onde encontra-se seu arquivo 
+setwd("C:/Users/tsgon/Desktop/Unibh - Extensão/Aulas/Aula Prática 01")
+ 
+## Verificar alteração do diretório
+getwd()
+
+## Importar dados 
+val<-read.table("Data2.txt",header=TRUE,sep=,dec=",")
+
+## Verificar os dados
+fix(val)
+view(val)
+
+## Instalação de pacotes
+
+install.packages("MASS")
+install.packages("magrittr")
+install.packages("gridExtra")
+install.packages("ggplot2")
+library(MASS)
+library(magrittr)       
+library(gridExtra)      
+library(ggplot2)  
+
+
+qplot(val$cu,val$zn,geom = c("point", "smooth"))
+qplot(val$cu,val$zn,geom = c("point", "jitter"))
+qplot(val$cu,val$zn,geom = c("point", "line"))
+
+
+## Gráficos Múltiplos - ajuste linear
+
+plot1 <- qplot(val$cu,val$zn,geom = c("point", "jitter"))+ geom_smooth(method = "lm", se = FALSE)
+plot2 <- qplot(val$cu,val$al,geom = c("point", "jitter"))+ geom_smooth(method = "lm", se = FALSE)
+plot3 <- qplot(val$cu,val$ni,geom = c("point", "jitter"))+ geom_smooth(method = "lm", se = FALSE)
+plot4 <- qplot(val$zn,val$al,geom = c("point", "jitter"))+ geom_smooth(method = "lm", se = FALSE)
+plot5 <- qplot(val$zn,val$ni,geom = c("point", "jitter"))+ geom_smooth(method = "lm", se = FALSE)
+plot6 <- qplot(val$al,val$ni,geom = c("point", "jitter"))+ geom_smooth(method = "lm", se = FALSE)
+
+grid.arrange(plot1, plot2, plot3, plot4, plot5, plot6, ncol=3)
+
+## Gráficos Múltiplos - ajuste sem suavização
+
+plot1 <- qplot(val$cu,val$zn,geom = c("point", "smooth"))
+plot2 <- qplot(val$cu,val$al,geom = c("point", "smooth"))
+plot3 <- qplot(val$cu,val$ni,geom = c("point", "smooth"))
+plot4 <- qplot(val$zn,val$al,geom = c("point", "smooth"))
+plot5 <- qplot(val$zn,val$ni,geom = c("point", "smooth"))
+plot6 <- qplot(val$al,val$ni,geom = c("point", "smooth"))
+
+grid.arrange(plot1, plot2, plot3, plot4, plot5, plot6, ncol=3)
+
+## Grásficos customizados - Scatter Plot com mapa de calor
+
+ggplot(val, aes(cu, al)) +
+  geom_hex( bins=30 )
+
+## Grásficos customizados - Scatter Plot com superfície de contorno
+
+ggplot(val, aes( x=cu, y=al) ) +
+  geom_point( size=1 ) + geom_density2d()
+
+ggplot(val, aes( x=cu, y=al) ) +
+  geom_point( size=1 ) + geom_density2d() +
+  geom_smooth(method = "lm", se = FALSE)
+
+ggplot(val, aes( x=cu, y=al) ) +
+  geom_point( size=1 ) + geom_density2d() +
+  geom_smooth(method = "loess", se = FALSE)
+
+
+## Gráficos híbridos
+
+ggplot(val, aes(cu, al)) +
+  geom_hex( bins=30 ) +
+  geom_point( size=1 ) + geom_density2d()
+
+ggplot(val, aes(cu, al)) +
+  geom_hex( bins=30 ) +
+  geom_point( size=1 ) + geom_density2d()
+
+## Análise de correlação - instação de pacotes
+
+install.packages("corrplot")
+library("corrplot") 
+
+## Análise de correlação - tipologia de métodos
+"circle", "square", "ellipse", "number", "shade",
+"color", "pie"
+
+## Análise de correlação - gráficos
+
+subset<-data.frame(val$al,val$cu,val$ni,val$zn)
+M <- cor(subset)
+corrplot(M, method = "circle")
+corrplot(M, method = "square")
+corrplot(M, method = "ellipse")
+corrplot(M, method = "number")
+corrplot(M, method = "shade")
+corrplot(M, method = "color")
+corrplot(M, method = "pie")
+
+## Análise de correlação - uma outra abordagem
+
+## Análise de correlação - instalação de pacotes
+
+install.packages("PerformanceAnalytics")
+library("PerformanceAnalytics")
+
+## Análise de correlação - métodos possíveis
+
+"pearson"
+"kendall"
+"spearman"
+
+## Análise de correlação - gráfico robusto
+
+chart.Correlation(subset, histogram=TRUE, pch=20, col='black')

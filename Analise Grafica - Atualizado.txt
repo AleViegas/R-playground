@@ -1,0 +1,109 @@
+###############################################################
+
+Ajuste de Séries Temporais no R - Prof. Tiago Silveira Gontijo
+Análise Gráfica
+
+###############################################################
+
+## Ajuste inicial ##
+ 
+## Limpar variáveis do sistema ##
+rm(list=ls(all=TRUE))
+ 
+## Limpar console ##
+Crtl+l
+
+## Especifique o diretório onde encontra-se seu arquivo ##
+setwd("C:/Users/tsgon/Desktop/Unibh - Extensão/Aulas/Aula Prática 01")
+ 
+## Verificar alteração do diretório ##
+getwd()
+
+## Importar dados ##
+Data<-read.table("Data.txt",header=TRUE)
+
+## Verificar os dados ##
+fix(Data)
+
+#################################################################
+
+## Definação das classes dos objetos ##
+is.data.frame(Data)
+names(Data)
+Data$Price
+Data$Class
+
+is.factor(Data$Class)
+Data$Class<-factor(Data$Class) # Class tem que ser factor
+is.numeric(Data$Price) # Price tem que ser numeric
+
+## Análise Descritiva Inicial ##
+summary(Data$Price)
+tapply(Data$Price, Data$Class, length)
+by(Data$Price, Data$Class, length) # forma alternativa
+
+tapply(Data$Price, Data$Class, mean)
+tapply(Data$Price, Data$Class, median)
+tapply(Data$Price, Data$Class, sd)
+tapply(Data$Price, Data$Class, max)-tapply(Data$Price, Data$Class, min)
+tapply(Data$Price, Data$Class, summary)
+by(Data$Price, Data$Class, summary)  # forma alternativa
+
+#################################################################
+
+## Análise Gráfica - Gráfico de Linhas ##
+plot(Data$Price) # gráfico de pontos
+plot(Data$Price, pch="x", col=2, cex=1.5) # muda a marca, cor e intensidade
+plot(Data$Price, pch="x", col=2, cex=1.5, type="l") # gráfico linear 
+plot(Data$Class,Data$Price)
+
+## Análise Gráfica - Boxplot - Histograma ##
+boxplot(Data$Price ~ Data$Class)
+hist(Data$Price)
+
+par(mfrow=c(2,2))
+hist(Data$Price)
+boxplot(Data$Price, horizontal=TRUE)
+hist(Data$Price)
+boxplot(Data$Price, horizontal=TRUE)
+
+par(mfcol = c(2, 2))
+hist(Data$Price)
+boxplot(Data$Price, horizontal=TRUE)
+hist(Data$Price)
+boxplot(Data$Price, horizontal=TRUE)
+
+#################################################################
+
+## Subsetting original data ##
+
+subset<-subset(Data, Class %in% c("Al", "Cu")) # Alternativa 1
+subset
+Df2 <- subset(Data, Class=="Al" | Class=="Cu") # Alternativa 2
+Df2
+
+## Exemplo de análise - Boxplot com classes reduzidas ##
+
+boxplot(Df2$Price ~ Df2$Class)
+
+#################################################################
+
+## Análise de Variância ##
+Data.av <- aov(Price ~ Class, data = Data)
+Data.av
+summary(Data.av)
+anova(Data.av)
+
+## Verificação dos intervalos de confiança ##
+pairwise.t.test(Data$Price, Data$Class, p.adj = "bonf")
+pairwise.t.test(Data$Price, Data$Class, p.adj = "holm") # Método de Holm
+
+## Teste de Tukey ##
+Data.tu <- TukeyHSD(Data.av,conf.level=0.90)
+plot(Data.tu)
+Data.tu
+
+#############################################################
+
+
+#############################################################

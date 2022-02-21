@@ -1,0 +1,134 @@
+###################################################################################
+
+Ajuste de Séris Temporais - Trading Itau vs Bradesco - Prof. Tiago Silveira Gontijo
+
+###################################################################################
+
+## Instalação e execução dos pacotes
+install.packages("quantmod")
+require(quantmod)
+
+## Importação das cotações do Bradesco
+getSymbols('BBDC4.SA',src='yahoo')
+
+## Gráfico das cotações
+chartSeries(BBDC4.SA)
+
+## Importação das cotações do Itaú
+getSymbols('ITUB4.SA',src='yahoo')
+
+## Gráfico das cotações
+chartSeries(ITUB4.SA)
+
+## A série é muito longa - análise de um período
+## últimos 4 meses das cotações do Bradesco
+chartSeries(BBDC4.SA,subset = 'last 4 months')
+
+## últimos 4 meses das cotações do Itaú
+chartSeries(ITUB4.SA,subset = 'last 4 months')
+
+## Gráficos simultâneos das duas séries temporais - Bradesco e Itaú
+head(as.xts(merge(BBDC4.SA,ITUB4.SA)))
+chartSeries(c(BBDC4.SA, ITUB4.SA))
+
+###########################################################################################
+
+## Modelo básico de curto prazo para operar ações: bandas de Bollinger
+
+## O que são as Bandas de Bollinger?
+Bandas de bollinger, ou do inglês bollinger bands, é um indicador de volatilidade
+bastante utilizado para prever se um ativo está sobre-comprado, estável ou sobre-
+vendido. Ele formado por duas médias móveis, uma superior e outra inferior que 
+indicam tal informação. Indicadas para operações de curto prazo, day trade ou 
+swing trade
+
+## Como usar Bandas de Bollinger?
+https://smarttbot.com/blog/como-usar-bandas-de-bollinger/
+https://www.sunoresearch.com.br/artigos/bandas-de-bollinger/
+
+## Movimentos Fortes
+Quando o canal formado pelas bandas se estreita significa que há um equilíbrio entre
+demanda e oferta e, após esse momento, existem grandes chances de acontecer uma 
+tendência forte, de alta ou de baixa. Por este tipo de sinal é que o indicador é conhecido
+por ser antecipador de tendências.
+
+## Tendência
+Quando o preço do ativo (seja uma ação, opção ou contrato) ultrapassa a banda superior
+ou a inferior existe uma interpretação que diz que haverá continuação do movimento. Mas
+como as Bandas de Bollinger representam  força, podemos supor que ao extrapolar o preço
+maior é um sinal de força e quando ultrapassa a banda inferior nota-se fraqueza da tendência.
+
+## Estratégias de Investimento automatizadas baseadas nas Bandas de Bollinger
+
+## Números de períodos: representa o número de candles a serem observados para gerar o
+resultado do Cálculo da Banda para que o indicador seja plotado no gráfico.
+
+## Multiplicador do desvio: número de desvio padrão para que as bandas superior e 
+inferior sejam posicionadas. Quanto maior esse número, maior será também a amplitude do
+canal e, por consequência, menor será a quantidade de trades.
+
+## Stops: representa o momento de saída, que pode se dar por um sinal indicado pelas 
+Bandas de Bollinger ou não. Também pode ser o alvo de ganho que, após alcançado, gera a 
+saída da operação para garantir o lucro.
+
+###########################################################################################
+
+## Construção do Gráfico com as Bandas de Bollinger - Bradesco
+chartSeries(BBDC4.SA, subset = 'last 12 months', theme="white",TA="addVo();addBBands(30,2);addCCI()")
+
+## Construção do Gráfico com as Bandas de Bollinger - Itaú
+chartSeries(ITUB4.SA, subset = 'last 12 months', theme="white",TA="addVo();addBBands();addCCI()")
+
+###########################################################################################
+
+## Long-Short através de Cointegração: um exemplo usando o pacote PairTrading
+Estratégias de arbitragem estatística são baseadas em encontrar uma série temporal que possua a
+característica de estacionariedade ou reversão à média. Isto significa que é possível identificar
+situações em que a série divergiu de seu comportamento histórico e prever com alguma segurança
+que a série convergirá ou reverterá para um comportamento “médio”. O conceito de cointegração
+formaliza matematicamente este comportamento e permite a realização de testes estatísticos
+para detectar séries com este comportamento
+
+No contexto de operações com pares de ativos (pairs trading), a existência de uma relação de
+cointegração entre as séries de preços de dois ativos significa que pode ser possível realizar
+operações lucrativas de arbitragem. Por outro lado, se o par não for cointegrado, será impossível
+encontrar uma relação consistente para operar o par.
+
+É necessário termos um teste para identificar quais pares de ações são cointegrados. Mesmo
+dentro do universos dos pares que são cointegrados, não há garantia de sucesso. É preciso que o
+par possua algumas características específicas para que uma estratégia de arbitragem seja
+consistentemente lucrativa:
+
+a. Relação de cointegração estável ao longo do tempo
+b. Reversão frequente do spread à média
+c. Variabilidade razoavelmente grande nas divergências
+
+###########################################################################################
+
+## Selecionar duas ações que movem similarmente
+BBDC4.SA_2013 <- BBDC4.SA['2013::']
+ITUB4.SA_2013 <- ITUB4.SA['2013::']
+pairs <- cbind(BBDC4.SA_2013$BBDC4.SA.High,ITUB4.SA_2013$ITUB4.SA.High)
+ts.plot(pairs)
+
+## Estimando o spread - instalação de pacotes
+install.packages("devtools")
+require(devtools)
+install_github("cran/PairTrading")
+require(PairTrading)
+
+## Estimando o spread - análise estatística
+reg <- EstimateParameters(pairs, method = lm)
+
+## Estimando os parâmetros para o back-test
+params <- EstimateParametersHistorically(pairs, period = 180)
+
+## Criando o sinal para a operação
+signal <- Simple(params$spread, 0.05)
+barplot(signal,col="blue",space = 0, border = "blue",xaxt="n",yaxt="n",xlab="",ylab="")
+par(new=TRUE)
+plot(params$spread)
+
+## Performance of pair trading
+return.pairtrading <- Return(pairs, lag(signal), lag(params$hedge.ratio))
+plot(100 * cumprod(1 + return.pairtrading))
